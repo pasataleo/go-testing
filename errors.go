@@ -1,34 +1,62 @@
 package tests
 
-func (output *RunOutput) error(raw interface{}) (error, bool) {
-	output.tb.Helper()
+import (
+	"reflect"
+	"strings"
+)
 
-	value, ok := raw.(error)
-	if !ok {
-		output.fail("expected error type but found %T", raw)
-	}
-	return value, ok
+var (
+	err = reflect.TypeOf((*error)(nil)).Elem()
+)
+
+type ErrorOutput struct {
+	RunOutput
+
+	Value error
 }
 
-func (output RunOutput) CaptureError() (error, RunOutput) {
+func (output RunOutput) error() (ErrorOutput, RunOutput) {
 	output.tb.Helper()
 
-	if output, ok := output.validate(); !ok {
-		return nil, output
+	raw, next := output.value()
+	if !raw.Type().ConvertibleTo(err) {
+		output.fail("expected error type but found %s", raw.Kind())
+		return ErrorOutput{
+			RunOutput: output,
+		}, next
 	}
 
-	value := output.value()
-	if value == nil {
-		return nil, output
+	iface := raw.Interface()
+	if iface == nil {
+		return ErrorOutput{
+			RunOutput: output,
+		}, next
 	}
 
-	if err, ok := output.error(value); ok {
-		return err, output
+	return ErrorOutput{
+		RunOutput: output,
+		Value:     iface.(error),
+	}, next
+}
+
+func (output RunOutput) CaptureError() (ErrorOutput, RunOutput) {
+	output.tb.Helper()
+
+	if next, ok := output.validate(); !ok {
+		return ErrorOutput{
+			RunOutput: output,
+		}, next
 	}
-	return nil, output
+
+	return output.error()
 }
 
 func (output RunOutput) NoError() RunOutput {
+	output.tb.Helper()
+	return output.NoErrorf(ActualFormatKey)
+}
+
+func (output RunOutput) NoErrorf(format string, args ...any) RunOutput {
 	output.tb.Helper()
 
 	err, output := output.CaptureError()
@@ -36,14 +64,20 @@ func (output RunOutput) NoError() RunOutput {
 		return output
 	}
 
-	if err != nil {
-		output.fail("expected no error but found \"%s\"", err.Error())
+	if err.Value != nil {
+		fmt := strings.ReplaceAll(format, ActualFormatKey, err.Value.Error())
+		output.fail(fmt, args...)
 	}
 
 	return output
 }
 
-func (output RunOutput) Error(expected string) RunOutput {
+func (output RunOutput) ErrorMatches(expected string) RunOutput {
+	output.tb.Helper()
+	return output.ErrorMatchesf(expected, ActualFormatKey)
+}
+
+func (output RunOutput) ErrorMatchesf(expected string, format string, args ...any) RunOutput {
 	output.tb.Helper()
 
 	err, output := output.CaptureError()
@@ -51,10 +85,31 @@ func (output RunOutput) Error(expected string) RunOutput {
 		return output
 	}
 
-	if err == nil {
-		output.fail("expected \"%s\" but found no error", expected)
-	} else if err.Error() != expected {
-		output.fail("expected \"%s\" but was \"%s\"", expected, err.Error())
+	if err.Value == nil {
+		fmt := strings.ReplaceAll(format, ActualFormatKey, "nil")
+		output.fail(fmt, args...)
+	} else if err.Value.Error() != expected {
+		fmt := strings.ReplaceAll(format, ActualFormatKey, err.Value.Error())
+		output.fail(fmt, args...)
+	}
+	return output
+}
+
+func (output RunOutput) Error() RunOutput {
+	output.tb.Helper()
+	return output.Errorf("no error")
+}
+
+func (output RunOutput) Errorf(format string, args ...any) RunOutput {
+	output.tb.Helper()
+
+	err, output := output.CaptureError()
+	if output.tb.Failed() {
+		return output
+	}
+
+	if err.Value == nil {
+		output.fail(format, args...)
 	}
 
 	return output

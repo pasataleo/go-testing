@@ -1,46 +1,86 @@
 package tests
 
-func (output *RunOutput) string() (string, bool) {
-	output.tb.Helper()
+import (
+	"reflect"
+	"strings"
+)
 
-	raw := output.value()
-	value, ok := raw.(string)
-	if !ok {
-		output.fail("expected string type but found %T", raw)
-	}
-	return value, ok
+var (
+	str = reflect.TypeOf((*string)(nil)).Elem()
+)
+
+type StringOutput struct {
+	RunOutput
+
+	Value string
 }
 
-func (output RunOutput) CaptureString() (string, RunOutput) {
+func (output RunOutput) string() (StringOutput, RunOutput) {
 	output.tb.Helper()
 
-	var value string
-	if output, ok := output.validate(); !ok {
-		return value, output
+	raw, next := output.value()
+	if raw.Kind() != reflect.String {
+		output.fail("expected string type but found %s", raw.Kind())
+		return StringOutput{
+			RunOutput: output,
+		}, next
+	}
+	return StringOutput{
+		RunOutput: output,
+		Value:     raw.Interface().(string),
+	}, next
+}
+
+func (output RunOutput) CaptureString() (StringOutput, RunOutput) {
+	output.tb.Helper()
+
+	if next, ok := output.validate(); !ok {
+		return StringOutput{
+			RunOutput: output,
+		}, next
 	}
 
-	if value, ok := output.string(); ok {
-		return value, output
-	}
-
-	return value, output
+	return output.string()
 }
 
 func (output RunOutput) StringEquals(expected string) RunOutput {
 	output.tb.Helper()
+	return output.StringEqualsf(expected, ActualFormatKey)
+}
 
-	if output, ok := output.validate(); !ok {
-		return output
-	}
+func (output RunOutput) StringEqualsf(expected string, format string, args ...any) RunOutput {
+	output.tb.Helper()
 
-	value, output := output.CaptureString()
+	value, next := output.CaptureString()
 	if output.tb.Failed() {
-		return output
+		return next
 	}
 
-	if value != expected {
-		output.fail("expected \"%s\" but was \"%s\"", expected, value)
+	if value.Value != expected {
+		fmt := strings.ReplaceAll(format, ActualFormatKey, value.Value)
+		output.fail(fmt, args...)
 	}
 
-	return output
+	return next
+}
+
+func (output RunOutput) StringLessThan(other string) RunOutput {
+	output.tb.Helper()
+	return output.StringLessThanf(other, ActualFormatKey)
+}
+
+func (output RunOutput) StringLessThanf(other string, format string, args ...any) RunOutput {
+	output.tb.Helper()
+
+	value, next := output.CaptureString()
+	if output.tb.Failed() {
+		return next
+	}
+
+	if value.Value < other {
+		fmt := strings.ReplaceAll(format, ActualFormatKey, value.Value)
+		output.fail(fmt, args...)
+	}
+
+	return next
 }
