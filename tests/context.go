@@ -3,6 +3,8 @@ package tests
 import (
 	"reflect"
 	"testing"
+
+	"github.com/pasataleo/go-testing/tests/internal"
 )
 
 type Context[CaptureType any] struct {
@@ -26,34 +28,21 @@ func ExecFnT[CaptureType any](tb testing.TB, function any, args ...any) Context[
 		tb.Fatalf("expected function type but found %s", f.Type().Kind())
 	}
 
-	if len(args) != f.Type().NumIn() {
-		tb.Fatalf("expected %d arguments but found %d", f.Type().NumIn(), len(args))
+	var arguments []reflect.Value
+	for _, arg := range args {
+		arguments = append(arguments, reflect.ValueOf(arg))
 	}
 
-	var values []reflect.Value
-	for ix, arg := range args {
-		exp := f.Type().In(ix)
-
-		var value reflect.Value
-		if arg == nil {
-			value = reflect.New(exp).Elem()
-		} else {
-			value = reflect.ValueOf(arg)
-		}
-
-		if !value.CanConvert(exp) {
-			tb.Fatalf("cannot convert input %d (%s) into %s", ix, value.Type(), exp)
-		}
-
-		values = append(values, value.Convert(exp))
+	result := internal.Call(f, arguments)
+	if !result.Success {
+		tb.Fatalf(result.ErrorMessageFmt, result.ErrorMessageArguments...)
 	}
 
-	returns := f.Call(values)
 	return Context[CaptureType]{
 		tb:   tb,
 		fail: tb.Errorf,
-		args: returns,
-		ix:   len(returns) - 1,
+		args: result.ReturnValues,
+		ix:   len(result.ReturnValues) - 1,
 	}
 }
 

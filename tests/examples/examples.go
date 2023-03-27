@@ -32,3 +32,7 @@ func OneT[Value any](value Value, err error) (Value, error) {
 func TwoT[One, Two any](one One, two Two, err error) (One, Two, error) {
 	return one, two, err
 }
+
+func Variadic(args ...string) []string {
+	return args
+}

@@ -227,3 +227,9 @@ func TestCustomTypeValidateT(t *testing.T) {
 			return tests.ValidateSuccess
 		})
 }
+
+func TestVariadic(t *testing.T) {
+	tests.ExecFn(t, Variadic).Equals([]string{})
+	tests.ExecFn(t, Variadic, "one").Equals([]string{"one"})
+	tests.ExecFn(t, Variadic, "one", "two").Equals([]string{"one", "two"})
+}
