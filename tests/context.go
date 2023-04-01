@@ -15,6 +15,18 @@ type Context[CaptureType any] struct {
 	ix   int
 }
 
+func Empty(tb testing.TB) Context[interface{}] {
+	return EmptyT[interface{}](tb)
+}
+
+func EmptyT[CaptureType any](tb testing.TB) Context[CaptureType] {
+	return Context[CaptureType]{
+		tb:   tb,
+		fail: tb.Errorf,
+		ix:   -1,
+	}
+}
+
 func ExecFn(tb testing.TB, function any, args ...any) Context[interface{}] {
 	tb.Helper()
 	return ExecFnT[interface{}](tb, function, args...)

@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/pasataleo/go-errors/errors"
+	"github.com/pasataleo/go-objects/objects"
 )
 
 var (
@@ -79,6 +81,42 @@ func (ctx Context[CaptureType]) ErrorMatchesf(expected string, format string, ar
 
 	if diff := cmp.Diff(expected, err.Value.Error()); len(diff) > 0 {
 		fail(ctx, err.Value.Error(), format, args...)
+	}
+
+	return next
+}
+
+func (ctx Context[CaptureType]) ErrorCode(code errors.ErrorCode) Context[CaptureType] {
+	ctx.tb.Helper()
+	return ctx.ErrorCodef(code, "%s", ActualFormatKey)
+}
+
+func (ctx Context[CaptureType]) ErrorCodef(code errors.ErrorCode, format string, args ...any) Context[CaptureType] {
+	ctx.tb.Helper()
+
+	err, next := ctx.CaptureError()
+	if actual := errors.GetErrorCode(err.Value); actual != code {
+		fail(ctx, actual, format, args...)
+	}
+
+	return next
+}
+
+func (ctx Context[CaptureType]) ErrorContainsObject(expected objects.Object) Context[CaptureType] {
+	ctx.tb.Helper()
+	return ctx.ErrorContainsObjectf(expected, "%s", ActualFormatKey)
+}
+
+func (ctx Context[CaptureType]) ErrorContainsObjectf(expected objects.Object, format string, args ...any) Context[CaptureType] {
+	ctx.tb.Helper()
+
+	err, next := ctx.CaptureError()
+	if obj, ok := errors.GetEmbeddedData[objects.Object](err.Value); ok {
+		if !obj.Equals(expected) {
+			fail(ctx, obj.ToString(), format, args...)
+		}
+	} else {
+		fail(ctx, "(empty)", format, args...)
 	}
 
 	return next

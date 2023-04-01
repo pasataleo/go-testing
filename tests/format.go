@@ -5,6 +5,7 @@ const (
 )
 
 func fail[CaptureType any](ctx Context[CaptureType], actual interface{}, format string, args ...any) {
+	ctx.tb.Helper()
 	ctx.fail(format, replaceActualFormatKey(actual, args...)...)
 }
 
