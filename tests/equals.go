@@ -1,8 +1,24 @@
 package tests
 
 import (
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 )
+
+func Equals(t *testing.T, expected, actual any) {
+	t.Helper()
+	if diff := cmp.Diff(expected, actual); len(diff) > 0 {
+		t.Errorf("expected: %v, actual: %v, diff: %s", expected, actual, diff)
+	}
+}
+
+func Equalsf(t *testing.T, expected, actual any, format string, args ...any) {
+	t.Helper()
+	if diff := cmp.Diff(expected, actual); len(diff) > 0 {
+		t.Errorf(format, replaceActualFormatKey(actual, args...)...)
+	}
+}
 
 func (ctx Context[CaptureType]) Equals(expected any) Context[CaptureType] {
 	ctx.tb.Helper()
