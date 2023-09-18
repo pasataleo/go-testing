@@ -27,6 +27,15 @@ func EmptyT[CaptureType any](tb testing.TB) Context[CaptureType] {
 	}
 }
 
+func Value[CaptureType any](tb testing.TB, value CaptureType) Context[CaptureType] {
+	return Context[CaptureType]{
+		tb:   tb,
+		fail: tb.Errorf,
+		args: []reflect.Value{reflect.ValueOf(value)},
+		ix:   0,
+	}
+}
+
 func ExecFn(tb testing.TB, function any, args ...any) Context[interface{}] {
 	tb.Helper()
 	return ExecFnT[interface{}](tb, function, args...)
