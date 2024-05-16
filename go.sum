@@ -2,5 +2,5 @@ github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/pasataleo/go-errors v0.1.2 h1:uOC1pxiZLRLOnExT8utYh032/YcZyAovCbttZhUniPo=
 github.com/pasataleo/go-errors v0.1.2/go.mod h1:tk/Ac7UOe8MdTMHxRKRbVwSKmBq8A6d/HGQJ0NII/yQ=
-github.com/pasataleo/go-objects v0.1.0 h1:9gK6PcOoxKs95sQo3F2Jga1J2uwAxxrayCG1Xwz67y8=
-github.com/pasataleo/go-objects v0.1.0/go.mod h1:k+zFsmRm200RC/viIl7wmbqqd6YFujWDBa3Icn7noSw=
+github.com/pasataleo/go-objects v0.1.3 h1:7lXq5F7vmWqCYgujxtCAM76q6m5fgDB4+8iZWxSw7Ns=
+github.com/pasataleo/go-objects v0.1.3/go.mod h1:8hy7SX5a2rXyQ46M9JJo4Vujz6gv2asvgdFPZoIB7yQ=

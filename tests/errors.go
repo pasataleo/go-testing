@@ -113,7 +113,7 @@ func (ctx Context[CaptureType]) ErrorContainsObjectf(expected objects.Object, fo
 	err, next := ctx.CaptureError()
 	if obj, ok := errors.GetEmbeddedData[objects.Object](err.Value); ok {
 		if !obj.Equals(expected) {
-			fail(ctx, obj.ToString(), format, args...)
+			fail(ctx, obj.String(), format, args...)
 		}
 	} else {
 		fail(ctx, "(empty)", format, args...)

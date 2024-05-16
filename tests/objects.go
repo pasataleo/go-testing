@@ -27,7 +27,7 @@ func (ctx Context[CaptureType]) ObjectEqualsf(expected any, format string, args 
 
 	obj, next := ctx.CaptureObject()
 	if !obj.Value.Equals(expected) {
-		fail(ctx, obj.Value.ToString(), format, args...)
+		fail(ctx, obj.Value.String(), format, args...)
 	}
 	return next
 }
