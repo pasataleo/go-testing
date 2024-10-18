@@ -1,6 +1,10 @@
 package tests
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/pasataleo/go-errors/errors"
+)
 
 // Execute3E is a helper function that returns a new context with two values and an error. Ideally, you'd just call the
 // function you are testing directly: tests.Execute3A(struct.function()). This allows you to use the context methods to
@@ -56,11 +60,29 @@ func (ctx *Context3E[A, B]) NoError(t testing.TB, opts ...Opt) *Context2[A, B] {
 	}
 }
 
+// ErrorCode checks that the value is an error and has the expected error code.
+func (ctx *Context3E[A, B]) ErrorCode(t testing.TB, expected errors.ErrorCode, opts ...Opt) *Context2[A, B] {
+	t.Helper()
+	matchesErrorCode(t, ctx, expected, opts...)
+	return &Context2[A, B]{
+		one: ctx.one,
+		two: ctx.two,
+	}
+}
+
 // Validate runs the given callback with the value.
 func (ctx *Context3E[A, B]) Validate(t testing.TB, cb func(error)) *Context2[A, B] {
 	t.Helper()
 	cb(ctx.three)
 	return &Context2[A, B]{
+		one: ctx.one,
+		two: ctx.two,
+	}
+}
+
+// Capture returns the value.
+func (ctx *Context3E[A, B]) Capture() (error, *Context2[A, B]) {
+	return ctx.three, &Context2[A, B]{
 		one: ctx.one,
 		two: ctx.two,
 	}

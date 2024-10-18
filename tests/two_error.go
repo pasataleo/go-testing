@@ -1,6 +1,10 @@
 package tests
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/pasataleo/go-errors/errors"
+)
 
 // Execute2E is a helper function that returns a new context with a value and an error. Ideally, you'd just call the
 // function you are testing directly: tests.Execute2E(struct.function()). This allows you to use the context methods to
@@ -51,11 +55,27 @@ func (ctx *Context2E[A]) NoError(t testing.TB, opts ...Opt) *Context1[A] {
 	}
 }
 
+// ErrorCode checks that the value is an error and has the expected error code.
+func (ctx *Context2E[A]) ErrorCode(t testing.TB, expected errors.ErrorCode, opts ...Opt) *Context1[A] {
+	t.Helper()
+	matchesErrorCode(t, ctx, expected, opts...)
+	return &Context1[A]{
+		one: ctx.one,
+	}
+}
+
 // Validate runs the given callback with the value.
 func (ctx *Context2E[A]) Validate(t testing.TB, cb func(error)) *Context1[A] {
 	t.Helper()
 	cb(ctx.two)
 	return &Context1[A]{
+		one: ctx.one,
+	}
+}
+
+// Capture returns the value.
+func (ctx *Context2E[A]) Capture() (error, *Context1[A]) {
+	return ctx.two, &Context1[A]{
 		one: ctx.one,
 	}
 }

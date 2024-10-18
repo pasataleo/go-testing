@@ -1,5 +1,7 @@
 package tests
 
+import "github.com/google/go-cmp/cmp"
+
 var (
 	// Fatal is an option that means if the test fails, the test will be stopped.
 	Fatal = &opt{
@@ -23,4 +25,30 @@ type opt struct {
 
 func (o *opt) transform(context *validator) *validator {
 	return o.fn(context)
+}
+
+func CmpOption(opt cmp.Option) Opt {
+	return &cmpOpt{opt: opt}
+}
+
+type cmpOpt struct {
+	opt cmp.Option
+}
+
+func (o *cmpOpt) transform(context *validator) *validator {
+	// this option does not modify the context
+	return context
+}
+
+func filterCmpOpts(opt ...Opt) ([]Opt, []cmp.Option) {
+	var opts []Opt
+	var cmpOpts []cmp.Option
+	for _, o := range opt {
+		if co, ok := o.(*cmpOpt); ok {
+			cmpOpts = append(cmpOpts, co.opt)
+		} else {
+			opts = append(opts, o)
+		}
+	}
+	return opts, cmpOpts
 }
